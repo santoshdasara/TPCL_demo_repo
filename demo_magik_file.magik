@@ -1,0 +1,63 @@
+_global create_dm_top <<
+_proc @create_dm_top( p_ele_alt_path, p_dw_alt_path )
+
+	da_view << gis_program_manager.cached_dataset( :design_admin )
+	info_coll << da_view.collections[ :swg_dsn_dataset_info ]
+
+	_if _not da_view.writable?
+	_then
+		da_view.switch( :write )
+	_endif
+
+#----------------------------### ELECTRIC  ###------------------------------------------#
+	
+	ele_view << gis_program_manager.cached_dataset( :electric )
+	ele_view.goto_top_alternative()
+
+	l_date_time << date_time.now().write_string
+	
+	ele_view.checkpoint( "B4_DM_Top_" + l_date_time )
+
+	_if _not ele_view.writable?
+	_then
+		ele_view.switch( :write )
+	_endif
+
+	ele_info_rec << info_coll.select(predicate.eq( :dataset_name, "electric" )).an_element()
+
+	l_date_time << date_time.now().write_string
+	
+	da_view.checkpoint( "B4_DM_Top_" + l_date_time)
+
+	ele_dm_top << p_ele_alt_path.write_string
+	
+	ele_info_rec.as_built_alternative_path << ele_dm_top
+	
+	ele_info_rec.design_top_alternative_name << "DM Working Top"
+	
+
+#----------------------------### DESIGN WORK ###------------------------------------------#
+	dw_view << gis_program_manager.cached_dataset( :design_work )
+	
+	l_date_time << date_time.now().write_string
+	
+	dw_view.checkpoint( "B4_DM_Top_" + l_date_time )
+	
+	_if _not dw_view.writable?
+	_then
+		dw_view.switch( :write )
+	_endif
+
+	dw_info_rec << info_coll.select(predicate.eq( :dataset_name, "design_work" )).an_element()
+
+	dw_dm_top << p_dw_alt_path.write_string
+	
+	dw_info_rec.as_built_alternative_path << dw_dm_top
+
+	dw_info_rec.design_top_alternative_name << "DM Top"
+
+	# Commit Design Admin dataset
+	l_date_time << date_time.now().write_string
+	da_view.checkpoint("A4 DM_Top_" + l_date_time )
+
+_endproc
